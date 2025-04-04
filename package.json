@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@nuxtjs/prismic": "^4.1.0",
+    "@prismicio/client": "^7.17.1",
+    "dotenv": "^16.4.7",
+    "nodemailer": "^6.10.0"
+  },
+  "devDependencies": {
+    "nuxt": "^3.16.2"
+  }
+}
