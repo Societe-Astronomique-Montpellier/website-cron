@@ -25,7 +25,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "node dist/cron-runner.js"
+    "start": "node dist/cron-runner.js",
+    "dev": "ts-node src/cron-runner.ts"
   },
   "repository": {
     "type": "git",
