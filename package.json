@@ -1,11 +1,32 @@
 {
   "dependencies": {
-    "@nuxtjs/prismic": "^4.1.0",
     "@prismicio/client": "^7.17.1",
     "dotenv": "^16.4.7",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0"
   },
+  "name": "website-cron",
+  "version": "1.0.0",
+  "description": "",
+  "main": "cron-runner.js",
   "devDependencies": {
-    "nuxt": "^3.16.2"
-  }
+    "eslint": "^9.24.0",
+    "typescript": "^5.8.3"
+  },
+  "scripts": {
+    "start": "ts-node cron-runner.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Societe-Astronomique-Montpellier/website-cron.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Societe-Astronomique-Montpellier/website-cron/issues"
+  },
+  "homepage": "https://github.com/Societe-Astronomique-Montpellier/website-cron#readme"
 }
