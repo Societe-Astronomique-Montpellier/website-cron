@@ -1,17 +1,22 @@
 {
+  "name": "website-cron",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "dist/cron-runner.js",
+  "scripts": {
+    "dev": "npx tsx src/cron-runner.ts",
+    "build": "tsc",
+    "start": "node dist/cron-runner.js"
+  },
   "dependencies": {
     "@prismicio/client": "^7.17.1",
     "@prismicio/helpers": "^2.3.9",
     "dotenv": "^16.4.7",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0",
-    "nodemailer-express-handlebars": "^7.0.0",
-    "ts-node": "^10.9.2"
+    "nodemailer-express-handlebars": "^7.0.0"
   },
-  "name": "website-cron",
-  "version": "1.0.0",
-  "description": "",
-  "main": "src/cron-runner.ts",
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@types/node-cron": "^3.0.11",
@@ -20,22 +25,17 @@
     "@typescript-eslint/eslint-plugin": "^8.29.1",
     "@typescript-eslint/parser": "^8.29.1",
     "eslint": "^9.24.0",
+    "ts-node": "^10.9.2",
     "tslib": "^2.8.1",
     "typescript": "^5.8.3"
-  },
-  "scripts": {
-    "build": "tsc",
-    "start": "node dist/cron-runner.js",
-    "dev": "ts-node src/cron-runner.ts"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Societe-Astronomique-Montpellier/website-cron.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Société Astronomique de Montpellier",
   "license": "ISC",
-  "type": "module",
   "bugs": {
     "url": "https://github.com/Societe-Astronomique-Montpellier/website-cron/issues"
   },

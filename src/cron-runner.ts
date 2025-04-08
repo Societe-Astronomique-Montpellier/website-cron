@@ -1,5 +1,8 @@
 //Data
-import 'dotenv/config';
+import dotenv from 'dotenv';
+dotenv.config();
+
+
 import {Client, createClient, filter, PrismicDocument, asDate} from '@prismicio/client';
 import type { DateField, TimestampField } from "@prismicio/types";
 
@@ -16,6 +19,9 @@ const repositoryPrismic: string = process.env.PRISMIC_REPOSITORY as string;
 const client: Client = createClient(repositoryPrismic);
 const lang: string = "fr-FR";
 
+/**
+ * SMTP Config
+ */
 interface SmtpConfig {
     host: string
     port: number
@@ -32,9 +38,10 @@ const smtpConfig: SmtpConfig = {
     secure: true,
     auth: {
         user: process.env.SMTP_USER as string,
-        pass: process.env.SMTP_PASS as string
+        pass: process.env.SMTP_PWD as string
     },
 }
+
 // Create transporter instance
 const transporter = createTransport(smtpConfig);
 transporter.verify((err): void => {
@@ -46,13 +53,60 @@ transporter.verify((err): void => {
 const handlebarOptions = {
     viewEngine: {
         extname: ".hbs",
-        partialsDir: path.resolve("templates/emails/"),
+        partialsDir: path.resolve("src/templates/emails/"),
         defaultLayout: false,
     },
-    viewPath: path.resolve("templates/emails/"),
+    viewPath: path.resolve("src/templates/emails/"),
     extName: ".hbs",
 } as NodemailerExpressHandlebarsOptions;
 transporter.use("compile", hbs(handlebarOptions));
+
+/**
+ * Send email
+ *
+ * @param subject
+ * @param template
+ * @param listEvents
+*/
+const handleSendMail = async (subject: string, template: string, listEvents: PrismicDocument[]): Promise<void> => {
+    const mail = {
+        from: `"Societe-Astronomique-Montpellier" <${process.env.SMTP_USER}>`,
+        to: process.env.SMTP_MAILLIST,
+        replyTo: process.env.SMTP_MAILLIST,
+        subject: subject,
+        template: template,
+        context: {
+            events: listEvents.map((event: PrismicDocument) => {
+                return {
+                    title: event?.data?.title,
+                    dateStart: formatFrenchLongDate(event.data?.time_start),
+                    location: event.data.place_event_txt,
+                };
+            }),
+        },
+        headers: {
+            "List-ID": `"sam-liste" <${process.env.SMTP_MAILLIST}>`,
+        },};
+    transporter.sendMail(mail, (err, info) => console.log(err || info));
+};
+
+/**
+ * Format into french format date
+ * @param dateString
+*/
+const formatFrenchLongDate = (dateString: DateField | TimestampField | undefined): string => {
+    const prismicDate: Date | null = asDate(dateString);
+    const dateFormatter: Intl.DateTimeFormat = new Intl.DateTimeFormat(lang, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "Europe/Paris",
+    });
+    return dateFormatter.format(prismicDate || undefined);
+};
 
 /**
  * DAILY CRON
@@ -120,49 +174,18 @@ cron.schedule("0 7 * * 1", async (): Promise<void> => {
     }
 });
 
-/**
- * Send email
- *
- * @param subject
- * @param template
- * @param listEvents
- */
-const handleSendMail = async (subject: string, template: string, listEvents: PrismicDocument[]): Promise<void> => {
-    const mail = {
-        from: `"Societe-Astronomique-Montpellier" <${process.env.SMTP_USER}>`,
-        to: process.env.SMTP_MAILLIST,
-        replyTo: process.env.SMTP_MAILLIST,
-        subject: subject,
-        template: template,
-        context: {
-            events: listEvents.map((event: PrismicDocument) => {
-                return {
-                    title: event?.data?.title,
-                    dateStart: formatFrenchLongDate(event.data?.time_start),
-                    location: event.data.place_event_txt,
-                };
-            }),
+const testDevSendMail = async () => {
+    const today: string = new Date().toISOString().split("T")[0];
+    const listEventsTest: PrismicDocument[] = await client.getAllByType("event", {
+        lang: "fr-FR",
+        filters: [
+            filter.dateAfter("my.event.time_start", today),
+        ],
+        orderings: {
+            field: "my.event.time_start",
+            direction: "asc",
         },
-        headers: {
-            "List-ID": `"sam-liste" <${process.env.SMTP_MAILLIST}>`,
-        },};
-    transporter.sendMail(mail, (err, info) => console.log(err || info));
-};
-
-/**
- * Format into french format date
- * @param dateString
- */
-const formatFrenchLongDate = (dateString: DateField | TimestampField | undefined): string => {
-    const prismicDate: Date | null = asDate(dateString);
-    const dateFormatter: Intl.DateTimeFormat = new Intl.DateTimeFormat(lang, {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-        timeZone: "Europe/Paris",
     });
-    return dateFormatter.format(prismicDate || undefined);
+    await handleSendMail('[TEST DEV] Email de test', 'dev', listEventsTest);
 };
+await testDevSendMail();
