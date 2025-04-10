@@ -173,19 +173,3 @@ cron.schedule("0 7 * * 1", async (): Promise<void> => {
         console.error('[WEEKLY CRON] error :', error)
     }
 });
-
-const testDevSendMail = async () => {
-    const today: string = new Date().toISOString().split("T")[0];
-    const listEventsTest: PrismicDocument[] = await client.getAllByType("event", {
-        lang: "fr-FR",
-        filters: [
-            filter.dateAfter("my.event.time_start", today),
-        ],
-        orderings: {
-            field: "my.event.time_start",
-            direction: "asc",
-        },
-    });
-    await handleSendMail('[TEST DEV] Email de test', 'dev', listEventsTest);
-};
-await testDevSendMail();
