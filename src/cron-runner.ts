@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 
-import {Client, createClient, filter, PrismicDocument, asDate} from '@prismicio/client';
+import {Client, createClient, filter, PrismicDocument, asDate, asImageSrc} from '@prismicio/client';
 import type { DateField, TimestampField } from "@prismicio/types";
 
 // Cron
@@ -81,6 +81,7 @@ const handleSendMail = async (subject: string, template: string, listEvents: Pri
                     title: event?.data?.title,
                     dateStart: formatFrenchLongDate(event.data?.time_start),
                     location: event.data.place_event_txt,
+                    image: asImageSrc(event.data.image_vignette)
                 };
             }),
         },
