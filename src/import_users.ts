@@ -24,7 +24,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CSV_FILE_PATH = path.join(__dirname, '../data/emails.csv');
 
-
 /**
  *
  * @param method
@@ -49,47 +48,7 @@ const generateSignature = (method: string, path: string, timestamp: number, body
 };
 
 /**
- * Get Token
- */
-// const getToken = async (): Promise<string> => {
-//     const timestamp: number = Math.floor(Date.now() / 1000);
-//     const path: string = '/auth/credential';
-//     const signature: string = generateSignature('POST', path, timestamp);
-//
-//     try {
-//         let response: Response = await fetch(`${endpoint}/auth/credential`, {
-//             method: 'POST',
-//             headers: {
-//                 'X-Ovh-Application': OVH_APP_KEY,
-//                 'X-Ovh-Timestamp': timestamp.toString(),
-//                 'X-Ovh-Signature': `$1$${signature}`,
-//                 'X-Ovh-Consumer': OVH_CONSUMER_KEY,
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify({
-//                 accessRules: [
-//                     {
-//                         method: 'POST',
-//                         path: `/email/domain/${DOMAIN}/mailingList/${MAILING_LIST_NAME}/subscriber`
-//                     },
-//                 ]
-//             })
-//         });
-//         const data = await response.json();
-//         if (!response.ok) throw new Error(data.message || 'Erreur lors de la récupération du token');
-//
-//         console.log(data);
-//
-//         return data.consumerKey;
-//     } catch (error) {
-//         console.error('Erreur lors de la récupération du token:', error);
-//         throw error;
-//     }
-// }
-
-/**
  * Add new subscriber to SAM-List
- * @param token
  * @param email
  */
 const addSubscriberSamList = async (email: string): Promise<string> => {
@@ -126,9 +85,7 @@ const addSubscriberSamList = async (email: string): Promise<string> => {
 /**
  * Add subscriber into SAM Nuage
  */
-const addSubscriberCloud = async (): Promise<void> => {
-
-};
+const addSubscriberCloud = async (): Promise<void> => {};
 
 const main = async (): Promise<void> => {
     try {
@@ -151,10 +108,9 @@ const main = async (): Promise<void> => {
                     }
                 }
             })
-
     } catch (error) {
         console.error(`Error in main script: ${error}`);
     }
 }
 
-main().catch((err) => console.error("❌", err.message));
+main().catch((err): void => console.error("❌", err.message));
