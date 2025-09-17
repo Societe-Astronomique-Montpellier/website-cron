@@ -12,6 +12,7 @@
   "dependencies": {
     "@prismicio/client": "^7.17.1",
     "@prismicio/types": "^0.2.9",
+    "csv-parser": "^3.2.0",
     "dotenv": "^16.4.7",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0",
