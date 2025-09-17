@@ -14,17 +14,29 @@ dotenv.config();
 const OVH_APP_KEY: string | undefined = process.env.APP_KEY ?? '';
 const OVH_APP_SECRET: string | undefined = process.env.APP_SECRET;
 const OVH_CONSUMER_KEY: string | undefined = process.env.CONSUMER_KEY ?? '';
-const endpoint = "https://eu.api.ovh.com/1.0";
+const endpoint: string = "https://eu.api.ovh.com/1.0";
 
 const DOMAIN: string = 'societe-astronomique-montpellier.fr';
-const MAILING_LIST_NAME = 'sam-liste';
+const MAILING_LIST_NAME: string = 'sam-liste';
 
 // CSV
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const CSV_FILE_PATH = path.join(__dirname, '../data/emails.csv');
+const __filename: string = fileURLToPath(import.meta.url);
+const __dirname: string = path.dirname(__filename);
+const CSV_FILE_PATH:string = path.join(__dirname, '../data/emails.csv');
 
 /**
+ * Get OVH timestamp
+ */
+const generateTimeStamp = async (): Promise<number> => {
+    const timeRes = await fetch(`${endpoint}/auth/time`);
+    if (!timeRes.ok) {
+        throw new Error(`Impossible de récupérer le timestamp OVH`);
+    }
+    return parseInt(await timeRes.text(), 10);
+}
+
+/**
+ * Generate OVH API signature
  *
  * @param method
  * @param path
@@ -32,6 +44,7 @@ const CSV_FILE_PATH = path.join(__dirname, '../data/emails.csv');
  * @param body
  */
 const generateSignature = (method: string, path: string, timestamp: number, body: any) => {
+
     const toSign = [
         OVH_APP_SECRET,
         OVH_CONSUMER_KEY,
@@ -40,11 +53,7 @@ const generateSignature = (method: string, path: string, timestamp: number, body
         body,
         timestamp,
     ].join('+');
-    return "$1$" +
-        crypto
-            .createHash('sha1')
-            .update(toSign)
-            .digest('hex');
+    return "$1$" + crypto.createHash('sha1').update(toSign).digest('hex');
 };
 
 /**
@@ -52,16 +61,14 @@ const generateSignature = (method: string, path: string, timestamp: number, body
  * @param email
  */
 const addSubscriberSamList = async (email: string): Promise<string> => {
-    const timeRes = await fetch(`${endpoint}/auth/time`);
-    const ovhTime = await timeRes.text();
-    const timestamp = parseInt(ovhTime, 10);
     const path = `/email/domain/${DOMAIN}/mailingList/${MAILING_LIST_NAME}/subscriber`;
-
     const body: string = JSON.stringify({
         email: email
     });
 
+    const timestamp: number = await generateTimeStamp();
     const signature = generateSignature('POST', path, timestamp, body);
+
     let response: Response = await fetch(`${endpoint}${path}`, {
         method: 'POST',
         headers: {
@@ -84,30 +91,49 @@ const addSubscriberSamList = async (email: string): Promise<string> => {
 
 /**
  * Add subscriber into SAM Nuage
+ *
+ * @param firstname
+ * @param lastname
+ * @param email
  */
-const addSubscriberCloud = async (): Promise<void> => {};
+const addSubscriberCloud = async (firstname: string, lastname: string, email: string): Promise<void> => {};
 
+/**
+ * Read CSV file line by line
+ * @param filepath
+ */
+const readCsv = (filepath: string): Promise<any[]> => {
+    return new Promise((resolve, reject): void => {
+        const results: any[] = [];
+        fs.createReadStream(filepath)
+            .pipe(csv())
+            .on("data", (row) => results.push(row))
+            .on("end", () => resolve(results))
+            .on("error", reject);
+    });
+}
+
+/**
+ * Main script
+ */
 const main = async (): Promise<void> => {
     try {
-        const emails: string[] = [];
-        fs.createReadStream(CSV_FILE_PATH)
-            .pipe(csv())
-            .on('data', (data) => {
-                if (data['email']) {
-                    emails.push(data['email']);
-                }
-            })
-            .on('end', async  () => {
-                for (const email of emails) {
-                    try {
-                        const newEmail = await addSubscriberSamList(email);
-                        console.log(`Add new user ${newEmail}`);
-                        // await addSubscriberCloud();
-                    } catch (error) {
-                        console.error(`❌ Erreur pour ${email}:`, error);
-                    }
-                }
-            })
+        const rows = await readCsv(CSV_FILE_PATH);
+        for (const row of rows) {
+            const email = row.email?.trim();
+            if (!email) {
+                console.warn("⚠️ No email :", row);
+                continue;
+            }
+
+            try {
+                // const newEmail = await addSubscriberSamList(email);
+                console.log(`Email ${email} added in SAM-List`);
+                // await addSubscriberCloud(row.prenom, row.nom, row.email);
+            } catch (error) {
+                console.error(`❌ Error for ${email}:`, error);
+            }
+        }
     } catch (error) {
         console.error(`Error in main script: ${error}`);
     }
