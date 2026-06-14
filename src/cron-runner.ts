@@ -2,7 +2,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-
 import {Client, createClient, filter, PrismicDocument, asDate, asImageSrc} from '@prismicio/client';
 import type { DateField, TimestampField } from "@prismicio/types";
 
@@ -112,7 +111,7 @@ const formatFrenchLongDate = (dateString: DateField | TimestampField | undefined
 /**
  * DAILY CRON
  */
-cron.schedule("0 7 * * *", async(): Promise<void> => {
+cron.schedule("0 7 * * *", async (): Promise<void> => {
     // Get today's date in YYYY-MM-DD format
     const today = new Date().toISOString().split("T")[0];
 
